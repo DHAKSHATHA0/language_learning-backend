@@ -1,0 +1,124 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Language Learning API",
+  "dateExport": "2025-12-13",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Authentication",
+      "requests": [
+        {
+          "name": "Signup",
+          "method": "POST",
+          "url": "http://localhost:5000/api/auth/signup",
+          "body": {
+            "email": "user@example.com",
+            "password": "Test@1234",
+            "name": "John Doe"
+          },
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        {
+          "name": "Login",
+          "method": "POST",
+          "url": "http://localhost:5000/api/auth/login",
+          "body": {
+            "email": "user@example.com",
+            "password": "Test@1234"
+          },
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "requests": [
+        {
+          "name": "Get All Courses",
+          "method": "GET",
+          "url": "http://localhost:5000/api/courses"
+        },
+        {
+          "name": "Create Course",
+          "method": "POST",
+          "url": "http://localhost:5000/api/courses",
+          "body": {
+            "title": "Spanish Basics",
+            "description": "Learn basic Spanish",
+            "language": "Spanish",
+            "level": "Beginner"
+          },
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        {
+          "name": "Get Course by ID",
+          "method": "GET",
+          "url": "http://localhost:5000/api/courses/{{courseId}}"
+        }
+      ]
+    },
+    {
+      "name": "Lessons",
+      "requests": [
+        {
+          "name": "Get All Lessons",
+          "method": "GET",
+          "url": "http://localhost:5000/api/lessons"
+        },
+        {
+          "name": "Create Lesson",
+          "method": "POST",
+          "url": "http://localhost:5000/api/lessons",
+          "body": {
+            "courseId": "{{courseId}}",
+            "title": "Introduction to Spanish",
+            "type": "words",
+            "content": {
+              "words": ["Hola", "Buenos días", "¿Cómo estás?"]
+            }
+          },
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        {
+          "name": "Get Lesson by ID",
+          "method": "GET",
+          "url": "http://localhost:5000/api/lessons/{{lessonId}}"
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "requests": [
+        {
+          "name": "Get User Profile",
+          "method": "GET",
+          "url": "http://localhost:5000/api/users/profile",
+          "headers": {
+            "Authorization": "Bearer {{token}}"
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "method": "PUT",
+          "url": "http://localhost:5000/api/users/profile",
+          "body": {
+            "name": "John Updated",
+            "bio": "Language learner"
+          },
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{token}}"
+          }
+        }
+      ]
+    }
+  ]
+}
