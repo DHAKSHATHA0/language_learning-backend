@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const Course = require('../models/Course');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 
@@ -104,13 +105,48 @@ async function registerCourse(req, res) {
 			return res.status(404).json({ message: 'User not found' });
 		}
 
+		// Check if user already registered
 		if (user.registeredCourses.find(c => c.name === name)) {
 			return res.status(400).json({ message: 'Already registered' });
 		}
 
-		user.registeredCourses.push({ name, flag, color, progress: 0 });
+		// Find or create the course
+		let course = await Course.findOne({ name });
+		if (!course) {
+			course = await Course.create({ name, flag, color });
+		}
+
+		// Add user to course's registered users
+		const userAlreadyInCourse = course.registeredUsers.some(u => u.userId.toString() === userId);
+		if (!userAlreadyInCourse) {
+			course.registeredUsers.push({ userId, progress: 0 });
+			await course.save();
+		}
+
+		// Ensure all existing courses have courseId before adding new one
+		for (const registeredCourse of user.registeredCourses) {
+			if (!registeredCourse.courseId) {
+				const existingCourse = await Course.findOne({ name: registeredCourse.name });
+				if (existingCourse) {
+					registeredCourse.courseId = existingCourse._id;
+				}
+			}
+		}
+
+		// Add course to user's registered courses
+		user.registeredCourses.push({ 
+			courseId: course._id, 
+			name, 
+			flag, 
+			color, 
+			progress: 0 
+		});
 		await user.save();
-		res.json(user.registeredCourses);
+		
+		res.json({
+			message: 'Course registered successfully',
+			registeredCourses: user.registeredCourses
+		});
 	} catch (err) {
 		console.error('Register course error:', err);
 		res.status(500).json({ message: err.message });
@@ -135,6 +171,17 @@ async function updateProgress(req, res) {
 
 		course.progress = Number(progress) || 0;
 		await user.save();
+
+		// Update course's registered users progress
+		const courseDoc = await Course.findById(course.courseId);
+		if (courseDoc) {
+			const userRegistration = courseDoc.registeredUsers.find(u => u.userId.toString() === userId);
+			if (userRegistration) {
+				userRegistration.progress = Number(progress) || 0;
+				await courseDoc.save();
+			}
+		}
+
 		res.json(course);
 	} catch (err) {
 		console.error('Update progress error:', err);
@@ -142,4 +189,25 @@ async function updateProgress(req, res) {
 	}
 }
 
-module.exports = { signup, login, getProfile, updateProfile, registerCourse, updateProgress };
+// Get all users registered for a specific course
+async function getCourseUsers(req, res) {
+	try {
+		const { courseName } = req.params;
+		const course = await Course.findOne({ name: courseName }).populate('registeredUsers.userId', 'name email');
+		
+		if (!course) {
+			return res.status(404).json({ message: 'Course not found' });
+		}
+
+		res.json({
+			courseName: course.name,
+			totalUsers: course.registeredUsers.length,
+			users: course.registeredUsers
+		});
+	} catch (err) {
+		console.error('Get course users error:', err);
+		res.status(500).json({ message: err.message });
+	}
+}
+
+module.exports = { signup, login, getProfile, updateProfile, registerCourse, updateProgress, getCourseUsers };

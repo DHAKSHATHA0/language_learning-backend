@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-connectDB();
+connectDB().catch(err => console.error('DB connection error:', err));
 
 // Import routes
 const authRoutes = require('./routers/authRoutes');
@@ -38,6 +38,6 @@ app.get('/', (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
