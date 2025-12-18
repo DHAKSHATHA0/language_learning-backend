@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ninjahub-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        scope: run
+      - key: JWT_SECRET
+        scope: run
