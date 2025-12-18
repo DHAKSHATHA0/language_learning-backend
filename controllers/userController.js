@@ -98,15 +98,17 @@ async function updateProfile(req, res) {
 async function registerCourse(req, res) {
 	try {
 		const userId = req.user.id;
-		const { name, flag, color } = req.body;
+		const { name, color } = req.body;
+		const flag = '🗣️'; // Default flag for all courses
 
 		const user = await User.findById(userId);
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' });
 		}
 
-		// Check if user already registered
-		if (user.registeredCourses.find(c => c.name === name)) {
+		// Check if user already registered this course
+		const existingCourse = user.registeredCourses.find(c => c.name === name);
+		if (existingCourse) {
 			return res.status(400).json({ message: 'Already registered' });
 		}
 
@@ -133,13 +135,15 @@ async function registerCourse(req, res) {
 			}
 		}
 
-		// Add course to user's registered courses
+		// Add course to user's registered courses with tracking fields
 		user.registeredCourses.push({ 
 			courseId: course._id, 
 			name, 
 			flag, 
 			color, 
-			progress: 0 
+			progress: 0,
+			registrationCount: 1, // First registration
+			badgeCount: 0 // Initial badge count for this course
 		});
 		await user.save();
 		
@@ -210,4 +214,72 @@ async function getCourseUsers(req, res) {
 	}
 }
 
-module.exports = { signup, login, getProfile, updateProfile, registerCourse, updateProgress, getCourseUsers };
+// Sync all course data (badges, stars, completedLessons) to backend
+async function syncCourseData(req, res) {
+	try {
+		const userId = req.user.id;
+		const { registeredCourses } = req.body;
+
+		if (!Array.isArray(registeredCourses)) {
+			return res.status(400).json({ message: 'registeredCourses must be an array' });
+		}
+
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({ message: 'User not found' });
+		}
+
+		let totalBadges = 0;
+
+		// Update each course with the latest data from frontend
+		for (const frontendCourse of registeredCourses) {
+			const dbCourse = user.registeredCourses.find(c => c.name === frontendCourse.name);
+			if (dbCourse) {
+				// Update all fields while preserving courseId and registeredAt
+				dbCourse.badge = frontendCourse.badge || null;
+				dbCourse.stars = frontendCourse.stars || 0;
+				dbCourse.completedLessons = frontendCourse.completedLessons || [];
+				dbCourse.progress = frontendCourse.progress || 0;
+				dbCourse.completed = frontendCourse.completed || false;
+
+				// Track badge count for this course
+				if (frontendCourse.badge) {
+					dbCourse.badgeCount = (dbCourse.badgeCount || 0) + 1;
+					totalBadges++;
+				}
+
+				// If course just completed, record completion date and calculate days
+				if (frontendCourse.completed && !dbCourse.completionDate) {
+					dbCourse.completionDate = new Date();
+					// Calculate days from registration to completion
+					const registrationDate = new Date(dbCourse.registeredAt);
+					const completionDateObj = new Date(dbCourse.completionDate);
+					const timeDiff = completionDateObj - registrationDate;
+					dbCourse.daysToComplete = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+				}
+
+				// Update registration count if provided
+				if (frontendCourse.registrationCount) {
+					dbCourse.registrationCount = frontendCourse.registrationCount;
+				}
+			}
+		}
+
+		// Calculate total badges for user
+		user.totalBadges = user.registeredCourses.reduce((count, course) => {
+			return count + (course.badge ? 1 : 0);
+		}, 0);
+
+		await user.save();
+		res.json({
+			message: 'Course data synced successfully',
+			registeredCourses: user.registeredCourses,
+			totalBadges: user.totalBadges
+		});
+	} catch (err) {
+		console.error('Sync course data error:', err);
+		res.status(500).json({ message: err.message });
+	}
+}
+
+module.exports = { signup, login, getProfile, updateProfile, registerCourse, updateProgress, getCourseUsers, syncCourseData };

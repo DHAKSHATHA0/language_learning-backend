@@ -1,0 +1,124 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Language Learning API - AWS",
+  "dateExport": "2025-12-17",
+  "version": "1.2",
+  "note": "Replace YOUR_AWS_BACKEND_URL with your actual AWS backend URL (e.g., https://api.yourdomain.com or your EC2/Lambda URL)",
+  "folders": [
+    {
+      "name": "Authentication",
+      "requests": [
+        {
+          "name": "Signup",
+          "method": "POST",
+          "url": "YOUR_AWS_BACKEND_URL/api/auth/signup",
+          "body": {
+            "name": "John Doe",
+            "email": "john@example.com",
+            "password": "Test@1234"
+          },
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        {
+          "name": "Login",
+          "method": "POST",
+          "url": "YOUR_AWS_BACKEND_URL/api/auth/login",
+          "body": {
+            "email": "john@example.com",
+            "password": "Test@1234"
+          },
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "requests": [
+        {
+          "name": "Get All Courses",
+          "method": "GET",
+          "url": "YOUR_AWS_BACKEND_URL/api/courses",
+          "headers": {}
+        },
+        {
+          "name": "Get Course by Name",
+          "method": "GET",
+          "url": "YOUR_AWS_BACKEND_URL/api/courses/English",
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "name": "User Courses (Protected)",
+      "requests": [
+        {
+          "name": "Get User Profile",
+          "method": "GET",
+          "url": "YOUR_AWS_BACKEND_URL/api/users/me",
+          "headers": {
+            "Authorization": "Bearer YOUR_JWT_TOKEN_HERE"
+          }
+        },
+        {
+          "name": "Register Course",
+          "method": "POST",
+          "url": "YOUR_AWS_BACKEND_URL/api/users/me/register",
+          "body": {
+            "name": "Spanish",
+            "flag": "🇪🇸",
+            "color": "#38ef7d"
+          },
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_JWT_TOKEN_HERE"
+          }
+        },
+        {
+          "name": "Update Course Progress",
+          "method": "PUT",
+          "url": "YOUR_AWS_BACKEND_URL/api/users/me/courses/Spanish/progress",
+          "body": {
+            "progress": 50
+          },
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_JWT_TOKEN_HERE"
+          }
+        },
+        {
+          "name": "Get Course Users",
+          "method": "GET",
+          "url": "YOUR_AWS_BACKEND_URL/api/users/courses/Spanish/users",
+          "headers": {}
+        },
+        {
+          "name": "Update User Profile",
+          "method": "PUT",
+          "url": "YOUR_AWS_BACKEND_URL/api/users/me",
+          "body": {
+            "name": "John Updated"
+          },
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_JWT_TOKEN_HERE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "requests": [
+        {
+          "name": "Server Health",
+          "method": "GET",
+          "url": "YOUR_AWS_BACKEND_URL/health",
+          "headers": {}
+        }
+      ]
+    }
+  ]
+}

@@ -25,9 +25,12 @@ async function listCourses(req, res) {
 
 async function getCourse(req, res) {
 	try {
-		const course = await Course.findOne({ name: req.params.name });
+		const course = await Course.findOne({ name: req.params.name }).populate('registeredUsers.userId', 'name email');
 		if (!course) return res.status(404).json({ message: 'Course not found' });
-		res.json(course);
+		res.json({
+			...course.toObject(),
+			totalRegisteredUsers: course.registeredUsers.length
+		});
 	} catch (err) {
 		res.status(500).json({ message: err.message });
 	}
